@@ -3,9 +3,8 @@ package main
 import "ryg-email-service/rabbit_mq"
 
 func main() {
-	conn, ch, q := rabbit_mq.ConnectAMQ()
-	defer ch.Close()
-	defer conn.Close()
+	qm := rabbit_mq.NewQueueConsumerManager()
+	defer qm.Close()
 
-	rabbit_mq.ConsumeForever(ch, &q)
+	qm.Start()
 }
