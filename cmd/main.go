@@ -1,9 +1,14 @@
 package main
 
-import "ryg-email-service/rabbit_mq"
+import (
+	"ryg-email-service/conf"
+	"ryg-email-service/rabbit_mq"
+)
 
 func main() {
-	qm := rabbit_mq.NewQueueConsumerManager()
+	cnf := conf.LoadConfig()
+
+	qm := rabbit_mq.NewQueueConsumerManager(cnf)
 	defer qm.Close()
 
 	qm.Start()

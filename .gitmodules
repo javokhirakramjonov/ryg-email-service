@@ -1,0 +1,3 @@
+[submodule "ryg-protos"]
+	path = ryg-protos
+	url = git@github.com:javokhirakramjonov/ryg-protos.git

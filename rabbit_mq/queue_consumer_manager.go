@@ -3,6 +3,7 @@ package rabbit_mq
 import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
+	"ryg-email-service/conf"
 )
 
 const exchangeName = "email_service_topics"
@@ -13,7 +14,7 @@ type QueueConsumerManager struct {
 	consumers []QueueConsumer
 }
 
-func NewQueueConsumerManager() QueueConsumerManager {
+func NewQueueConsumerManager(cnf *conf.Config) QueueConsumerManager {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	log.Printf("Connected to RabbitMQ")
@@ -22,7 +23,7 @@ func NewQueueConsumerManager() QueueConsumerManager {
 	failOnError(err, "Failed to open a channel")
 	log.Printf("Opened a channel")
 
-	genericEmailQueue := NewGenericEmailQueueConsumer(ch, exchangeName)
+	genericEmailQueue := NewGenericEmailQueueConsumer(cnf, ch, exchangeName)
 
 	return QueueConsumerManager{
 		conn:      conn,

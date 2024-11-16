@@ -3,7 +3,11 @@ package rabbit_mq
 import (
 	"fmt"
 	ampq "github.com/rabbitmq/amqp091-go"
+	"google.golang.org/protobuf/proto"
 	"log"
+	"net/smtp"
+	"ryg-email-service/conf"
+	"ryg-email-service/gen_proto/email_service"
 )
 
 const (
@@ -12,14 +16,30 @@ const (
 )
 
 type GenericEmailQueueConsumer struct {
+	emailConfig struct {
+		host     string
+		port     string
+		username string
+	}
+	auth smtp.Auth
 	BaseQueueConsumer
 }
 
-func NewGenericEmailQueueConsumer(ch *ampq.Channel, exchangeName string) QueueConsumer {
+func NewGenericEmailQueueConsumer(cnf *conf.Config, ch *ampq.Channel, exchangeName string) QueueConsumer {
 	bindQueue(ch, exchangeName)
 
 	return &GenericEmailQueueConsumer{
-		BaseQueueConsumer{
+		emailConfig: struct {
+			host     string
+			port     string
+			username string
+		}{
+			host:     cnf.EmailHost,
+			port:     cnf.EmailPort,
+			username: cnf.EmailUsername,
+		},
+		auth: smtp.PlainAuth("", cnf.EmailUsername, cnf.EmailPassword, cnf.EmailHost),
+		BaseQueueConsumer: BaseQueueConsumer{
 			Ch: ch,
 		},
 	}
@@ -60,7 +80,33 @@ func (c *GenericEmailQueueConsumer) Consume() {
 
 	go func() {
 		for msg := range msgs {
-			log.Printf("Generic Email Consumer Received a message: %s", msg.Body)
+			var ge email_service.GenericEmail
+			err := proto.Unmarshal(msg.Body, &ge)
+			if err != nil {
+				log.Printf("Failed to unmarshal email message: %v", err)
+			}
+
+			log.Printf("\n To: %s\n Subject: %s\n Body: %s\n", ge.To, ge.Subject, ge.Body)
+
+			err = c.sendEmail(ge.To, ge.Subject, ge.Body)
+			if err != nil {
+				log.Printf("Failed to send email: %v", err)
+			} else {
+				log.Printf("Email sent successfully")
+			}
 		}
 	}()
+}
+
+func (c *GenericEmailQueueConsumer) sendEmail(to, subject, body string) error {
+	msg := []byte("To: " + to + "\r\n" +
+		"Subject: " + subject + "\r\n" +
+		"\r\n" +
+		body + "\r\n")
+
+	err := smtp.SendMail(c.emailConfig.host+":"+c.emailConfig.port, c.auth, c.emailConfig.username, []string{to}, msg)
+	if err != nil {
+		return err
+	}
+	return nil
 }
