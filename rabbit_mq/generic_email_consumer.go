@@ -25,7 +25,7 @@ type GenericEmailQueueConsumer struct {
 	BaseQueueConsumer
 }
 
-func NewGenericEmailQueueConsumer(cnf *conf.Config, ch *ampq.Channel, exchangeName string) QueueConsumer {
+func NewGenericEmailQueueConsumer(cnf *conf.EmailConfig, ch *ampq.Channel, exchangeName string) QueueConsumer {
 	bindQueue(ch, exchangeName)
 
 	return &GenericEmailQueueConsumer{
@@ -34,11 +34,11 @@ func NewGenericEmailQueueConsumer(cnf *conf.Config, ch *ampq.Channel, exchangeNa
 			port     string
 			username string
 		}{
-			host:     cnf.EmailHost,
-			port:     cnf.EmailPort,
-			username: cnf.EmailUsername,
+			host:     cnf.Host,
+			port:     cnf.Port,
+			username: cnf.Username,
 		},
-		auth: smtp.PlainAuth("", cnf.EmailUsername, cnf.EmailPassword, cnf.EmailHost),
+		auth: smtp.PlainAuth("", cnf.Username, cnf.Password, cnf.Host),
 		BaseQueueConsumer: BaseQueueConsumer{
 			Ch: ch,
 		},

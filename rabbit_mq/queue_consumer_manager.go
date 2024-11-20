@@ -15,7 +15,8 @@ type QueueConsumerManager struct {
 }
 
 func NewQueueConsumerManager(cnf *conf.Config) QueueConsumerManager {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	url := "amqp://" + cnf.RabbitMQConfig.User + ":" + cnf.RabbitMQConfig.Password + "@" + cnf.RabbitMQConfig.Host + ":" + cnf.RabbitMQConfig.Port + "/"
+	conn, err := amqp.Dial(url)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	log.Printf("Connected to RabbitMQ")
 
@@ -23,7 +24,7 @@ func NewQueueConsumerManager(cnf *conf.Config) QueueConsumerManager {
 	failOnError(err, "Failed to open a channel")
 	log.Printf("Opened a channel")
 
-	genericEmailQueue := NewGenericEmailQueueConsumer(cnf, ch, exchangeName)
+	genericEmailQueue := NewGenericEmailQueueConsumer(&cnf.EmailConfig, ch, exchangeName)
 
 	return QueueConsumerManager{
 		conn:      conn,
