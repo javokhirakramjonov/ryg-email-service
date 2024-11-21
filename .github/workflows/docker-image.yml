@@ -20,4 +20,4 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     - name: Push image to DockerHub
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/ryg-emaail-service:latest
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/ryg-email-service:latest
