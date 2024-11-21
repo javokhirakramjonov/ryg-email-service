@@ -56,6 +56,17 @@ func bindQueue(ch *ampq.Channel, exchangeName string) {
 	)
 	failOnError(err, "Failed to declare a queue")
 
+	err = ch.ExchangeDeclare(
+		exchangeName, // exchange name
+		"topic",      // exchange type
+		true,         // durable
+		false,        // auto-deleted
+		false,        // internal
+		false,        // no-wait
+		nil,          // arguments
+	)
+	failOnError(err, "Failed to declare an exchange")
+
 	err = ch.QueueBind(
 		q.Name,
 		"generic_email",
